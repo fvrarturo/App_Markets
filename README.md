@@ -1,4 +1,4 @@
-# Morgan Stanley Markets Dashboard
+# Simple S&T Markets Dashboard
 
 A comprehensive real-time market data application for tracking multiple asset classes including Equities, FX, Rates, Credit, Securitized Products, and Structured Products. Features live macroeconomic data from FRED API, category-specific news scraping, and offline caching capabilities.
 
