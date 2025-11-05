@@ -1,182 +1,138 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { FiRefreshCw } from 'react-icons/fi'
+import { FiRefreshCw, FiBookOpen, FiEye, FiMessageCircle, FiExternalLink } from 'react-icons/fi'
+import { cachedFetch } from '../utils/cache'
 import './AssetClass.css'
 
 const Credit = () => {
   const [data, setData] = useState([])
+  const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingNews, setLoadingNews] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 60000)
+    fetchNews()
+    const interval = setInterval(() => { fetchData(); fetchNews(); }, 60000)
     return () => clearInterval(interval)
   }, [])
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('/api/credit')
-      setData(response.data.data || [])
+      const response = await cachedFetch('/api/credit', { durationType: 'rates' })
+      setData(response.data || [])
       setLoading(false)
     } catch (error) {
-      console.error('Error fetching credit data:', error)
+      console.error('Error fetching credit:', error)
       setLoading(false)
     }
   }
 
-  if (loading) {
-    return <div className="loading"><div className="spinner"></div></div>
+  const fetchNews = async () => {
+    try {
+      const response = await cachedFetch('/api/news/credit', { durationType: 'news' })
+      setNews(response.data || [])
+      setLoadingNews(false)
+    } catch (error) {
+      console.error('Error fetching news:', error)
+      setLoadingNews(false)
+    }
   }
 
+  if (loading) return <div className="asset-class"><div className="loading">Loading credit data...</div></div>
+
   return (
-    <div className="asset-class-page">
-      <div className="page-header">
-        <div>
-          <h1>Credit Markets</h1>
-          <p>Corporate bonds, credit spreads, and fixed income securities</p>
-        </div>
-        <button className="refresh-btn" onClick={fetchData}>
-          <FiRefreshCw /> Refresh
-        </button>
+    <div className="asset-class">
+      <div className="asset-header">
+        <h1>Credit</h1>
+        <button className="refresh-btn" onClick={() => { fetchData(); fetchNews(); }}><FiRefreshCw /> Refresh</button>
       </div>
 
-      {/* Credit Instruments Grid */}
-      <div className="cards-grid">
-        {data.map((credit) => (
-          <div key={credit.ticker} className="card">
-            <div className="card-header">
-              <span className="card-title">{credit.name}</span>
-              <span className={`card-badge ${credit.change >= 0 ? 'up' : 'down'}`}>
-                {credit.change >= 0 ? '↑' : '↓'}
-              </span>
+      <div className="tab-nav">
+        <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={`tab-btn ${activeTab === 'desk' ? 'active' : ''}`} onClick={() => setActiveTab('desk')}><FiBookOpen /> What the Desk Does</button>
+        <button className={`tab-btn ${activeTab === 'indicators' ? 'active' : ''}`} onClick={() => setActiveTab('indicators')}><FiEye /> How to View Indicators</button>
+        {/* <button className={`tab-btn ${activeTab === 'questions' ? 'active' : ''}`} onClick={() => setActiveTab('questions')}><FiMessageCircle /> Questions to Ask</button> */}
+        <button className={`tab-btn ${activeTab === 'news' ? 'active' : ''}`} onClick={() => setActiveTab('news')}>📰 News</button>
+      </div>
+
+      {activeTab === 'overview' && (
+        <div className="data-grid">
+          {data.map((item, index) => (
+            <div key={index} className="data-card">
+              <h3>{item.name}</h3>
+              <div className="price">{item.price?.toFixed(2)}</div>
+              <div className={`change ${item.change < 0 ? 'negative' : 'positive'}`}>
+                {item.change?.toFixed(2)} ({item.changePercent?.toFixed(2)}%)
+              </div>
             </div>
-            <div className="card-value">${credit.price.toFixed(2)}</div>
-            <div className={`card-change ${credit.change >= 0 ? 'positive' : 'negative'}`}>
-              {credit.change > 0 ? '+' : ''}{credit.change.toFixed(2)} 
-              ({credit.changePercent > 0 ? '+' : ''}{credit.changePercent}%)
-            </div>
-            <div style={{ marginTop: '1rem' }}>
-              <span style={{ 
-                fontSize: '0.75rem', 
-                padding: '0.25rem 0.5rem', 
-                background: 'rgba(102, 126, 234, 0.1)',
-                borderRadius: '4px',
-                color: '#8b92b0'
-              }}>
-                {credit.ticker}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Credit Spreads Table */}
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h2 className="section-title">Credit Instruments Overview</h2>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Instrument</th>
-              <th>Ticker</th>
-              <th>Price</th>
-              <th>Change</th>
-              <th>Change %</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((credit) => (
-              <tr key={credit.ticker}>
-                <td style={{ fontWeight: 600 }}>{credit.name}</td>
-                <td>{credit.ticker}</td>
-                <td style={{ fontWeight: 600 }}>${credit.price.toFixed(2)}</td>
-                <td className={credit.change >= 0 ? 'positive' : 'negative'}>
-                  {credit.change > 0 ? '+' : ''}${credit.change.toFixed(2)}
-                </td>
-                <td className={credit.changePercent >= 0 ? 'positive' : 'negative'}>
-                  {credit.changePercent > 0 ? '+' : ''}{credit.changePercent}%
-                </td>
-                <td style={{ color: '#8b92b0' }}>
-                  {credit.ticker.includes('HY') || credit.ticker.includes('JNK') ? 'High Yield' : 
-                   credit.ticker.includes('IG') || credit.ticker.includes('LQD') ? 'Investment Grade' : 
-                   credit.ticker.includes('EM') ? 'Emerging Markets' : 'Fixed Income'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Market Insights */}
-      <div className="cards-grid" style={{ marginTop: '2rem' }}>
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>📊</span>
-            Investment Grade
-          </h3>
-          <p style={{ color: '#8b92b0', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.6' }}>
-            Corporate bonds rated BBB- or higher. Lower risk, lower yields.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#8b92b0', fontSize: '0.75rem' }}>Current Spread</span>
-            <span style={{ fontWeight: 600, color: '#10b981' }}>+125 bps</span>
-          </div>
+          ))}
         </div>
+      )}
 
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>⚡</span>
-            High Yield
-          </h3>
-          <p style={{ color: '#8b92b0', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.6' }}>
-            Bonds rated below BBB-. Higher risk, higher potential returns.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#8b92b0', fontSize: '0.75rem' }}>Current Spread</span>
-            <span style={{ fontWeight: 600, color: '#f59e0b' }}>+425 bps</span>
-          </div>
-        </div>
-
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>🌍</span>
-            Emerging Markets
-          </h3>
-          <p style={{ color: '#8b92b0', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.6' }}>
-            Sovereign and corporate debt from developing economies.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#8b92b0', fontSize: '0.75rem' }}>Current Spread</span>
-            <span style={{ fontWeight: 600, color: '#ef4444' }}>+350 bps</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Credit Market Commentary */}
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h2 className="section-title">Credit Market Analysis</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Key Drivers</h3>
-            <ul style={{ color: '#8b92b0', fontSize: '0.875rem', lineHeight: '1.8', paddingLeft: '1.5rem' }}>
-              <li>Central bank policy and rate expectations</li>
-              <li>Corporate earnings and default rates</li>
-              <li>Economic growth projections</li>
-              <li>Credit spreads vs. historical averages</li>
-            </ul>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Trading Considerations</h3>
-            <ul style={{ color: '#8b92b0', fontSize: '0.875rem', lineHeight: '1.8', paddingLeft: '1.5rem' }}>
-              <li>Duration risk and interest rate sensitivity</li>
-              <li>Credit quality and default probability</li>
-              <li>Liquidity conditions in corporate bonds</li>
-              <li>Sector rotation and industry trends</li>
+      {activeTab === 'desk' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiBookOpen /> What the Credit Desk Does</h2>
+            <ul className="info-list">
+              <li>Trades corporate bonds, credit default swaps (CDS), and loan products.</li>
+              <li>Provides liquidity and hedging for investors exposed to credit risk.</li>
+              <li>London desks: focus on European investment-grade (IG) and high-yield (HY) credit.</li>
             </ul>
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'indicators' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiEye /> How to View Indicators</h2>
+            <div className="indicator-list">
+              <div className="indicator-item"><h3>📉 Tightening spreads</h3><p>Improving sentiment, risk-on.</p></div>
+              <div className="indicator-item"><h3>📈 Widening spreads</h3><p>Risk aversion, rising default risk.</p></div>
+              <div className="indicator-item"><h3>📊 iTraxx Main and Xover</h3><p>Benchmark indices for IG and HY credit spreads.</p></div>
+              <div className="indicator-item"><h3>💹 New issuance spikes</h3><p>Positive sign for market confidence.</p></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* {activeTab === 'questions' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiMessageCircle /> Questions to Ask the Desk</h2>
+            <div className="questions-list">
+              <div className="question-item"><span className="q-mark">Q:</span><p>"Are you seeing more flow in IG or HY lately?"</p></div>
+              <div className="question-item"><span className="q-mark">Q:</span><p>"How are clients positioned—buying protection or selling?"</p></div>
+              <div className="question-item"><span className="q-mark">Q:</span><p>"Do you think spreads reflect fundamentals or just liquidity flows?"</p></div>
+            </div>
+          </div>
+        </div>
+      )} */}
+
+      {activeTab === 'news' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2>📰 Credit News</h2>
+            {loadingNews ? <p className="loading-text">Loading news...</p> : news.length > 0 ? (
+              <div className="news-list">
+                {news.map((article, index) => (
+                  <div key={index} className="news-item">
+                    <a href={article.url} target="_blank" rel="noopener noreferrer" className="news-link">
+                      <h3>{article.title}<FiExternalLink className="external-icon" /></h3>
+                      <div className="news-meta">
+                        <span className="news-source">{article.source}</span>
+                        <span className="news-time">{new Date(article.timestamp).toLocaleString()}</span>
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="no-data">No news articles found for this category.</p>}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { FiRefreshCw } from 'react-icons/fi'
+import { cachedFetch } from '../utils/cache'
 import './AssetClass.css'
 import './Macro.css'
 
@@ -17,8 +18,8 @@ const Macro = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('/api/macro')
-      setData(response.data.data || null)
+      const response = await cachedFetch('/api/macro', { durationType: 'macro' })
+      setData(response.data || null)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching macro data:', error)

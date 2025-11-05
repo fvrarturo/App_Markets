@@ -2,7 +2,7 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { 
   FiHome, FiTrendingUp, FiDollarSign, FiPercent, 
-  FiCreditCard, FiLayers, FiGrid, FiMenu, FiX, FiFileText,
+  FiCreditCard, FiLayers, FiGrid, FiMenu, FiX,
   FiBox, FiActivity
 } from 'react-icons/fi'
 import './Sidebar.css'
@@ -20,7 +20,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: '/securitized', icon: FiLayers, label: 'Securitized Products' },
     { path: '/structured', icon: FiGrid, label: 'Structured Products' },
     { path: '/macro', icon: FiActivity, label: 'Macro Indicators' },
-    { path: '/news', icon: FiFileText, label: 'Market News' },
   ]
 
   return (

@@ -551,6 +551,169 @@ def get_market_news():
         print(f"News endpoint error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== CATEGORY-SPECIFIC NEWS ====================
+@app.route('/api/news/<category>', methods=['GET'])
+def get_category_news(category):
+    """Get news filtered by category keywords"""
+    try:
+        # Define keywords for each category
+        category_keywords = {
+            'equities': ['equities', 'eurostoxx', 'ftse 100', 'vix', 'vstoxx', 'earnings', 'buybacks', 'volatility', 'sector rotation', 'valuation', 'structured notes', 'autocallables', 'hedge funds', 'stocks', 'equity'],
+            'rates': ['yield curve', 'ecb', 'boe', 'fed', 'bund', 'gilt', 'treasury', 'inflation swaps', '2s10s', '5s30s', 'move index', 'qt', 'fiscal deficit', 'sovereign issuance', 'bonds', 'yields'],
+            'fx': ['forex', 'fx', 'eur/usd', 'gbp/usd', 'dxy', 'carry trade', 'vol surface', 'risk reversal', 'em fx', 'cross-currency basis', 'intervention', 'currency', 'dollar'],
+            'commodities': ['oil', 'brent', 'wti', 'natural gas', 'opec', 'metals', 'copper', 'gold', 'lng', 'energy volatility', 'emissions', 'carbon trading', 'crude', 'commodities'],
+            'credit': ['credit spreads', 'cds', 'itraxx', 'default rates', 'hy', 'ig', 'issuance', 'leverage loans', 'rating downgrade', 'refinancing', 'corporate bonds', 'high yield'],
+            'securitized': ['rmbs', 'cmbs', 'abs', 'clo', 'securitization', 'prepayment', 'default', 'consumer credit', 'housing market', 'structured credit', 'tranche spreads', 'mortgage'],
+            'structured': ['structured notes', 'autocallables', 'reverse convertibles', 'hybrid structures', 'correlation', 'client demand', 'product issuance', 'esg', 'retail structured products', 'derivatives']
+        }
+        
+        keywords = category_keywords.get(category.lower(), [])
+        if not keywords:
+            return jsonify({'success': False, 'error': 'Invalid category'}), 400
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+        }
+        
+        news = []
+        
+        # Scrape from multiple sources and filter by keywords
+        try:
+            response = requests.get('https://www.reuters.com/markets/', headers=headers, timeout=8)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                articles = soup.find_all('a', attrs={'data-testid': 'Heading'}, limit=20)
+                
+                for article in articles:
+                    title = article.get_text().strip()
+                    title_lower = title.lower()
+                    
+                    # Check if any keyword matches
+                    if any(keyword in title_lower for keyword in keywords):
+                        href = article.get('href', '')
+                        full_url = href if href.startswith('http') else f'https://www.reuters.com{href}'
+                        news.append({
+                            'title': title,
+                            'source': 'Reuters',
+                            'url': full_url,
+                            'category': category.capitalize(),
+                            'timestamp': datetime.now().isoformat()
+                        })
+        except Exception as e:
+            print(f"Reuters scraping error for {category}: {e}")
+        
+        # MarketWatch
+        try:
+            response = requests.get('https://www.marketwatch.com/latest-news', headers=headers, timeout=8)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                articles = soup.find_all('a', class_='link', limit=20)
+                
+                for article in articles:
+                    title = article.get_text().strip()
+                    title_lower = title.lower()
+                    
+                    if any(keyword in title_lower for keyword in keywords) and len(title) > 20:
+                        href = article.get('href', '')
+                        full_url = href if href.startswith('http') else f'https://www.marketwatch.com{href}'
+                        if not any(n['title'] == title for n in news):
+                            news.append({
+                                'title': title,
+                                'source': 'MarketWatch',
+                                'url': full_url,
+                                'category': category.capitalize(),
+                                'timestamp': datetime.now().isoformat()
+                            })
+        except Exception as e:
+            print(f"MarketWatch scraping error for {category}: {e}")
+        
+        # CNBC
+        try:
+            response = requests.get('https://www.cnbc.com/markets/', headers=headers, timeout=8)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                articles = soup.find_all('a', class_='Card-title', limit=20)
+                
+                for article in articles:
+                    title = article.get_text().strip()
+                    title_lower = title.lower()
+                    
+                    if any(keyword in title_lower for keyword in keywords) and len(title) > 20:
+                        href = article.get('href', '')
+                        full_url = href if href.startswith('http') else f'https://www.cnbc.com{href}'
+                        if not any(n['title'] == title for n in news):
+                            news.append({
+                                'title': title,
+                                'source': 'CNBC',
+                                'url': full_url,
+                                'category': category.capitalize(),
+                                'timestamp': datetime.now().isoformat()
+                            })
+        except Exception as e:
+            print(f"CNBC scraping error for {category}: {e}")
+        
+        # Financial Times
+        try:
+            response = requests.get('https://www.ft.com/markets', headers=headers, timeout=8)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                articles = soup.find_all('a', class_='js-teaser-heading-link', limit=20)
+                
+                for article in articles:
+                    title = article.get_text().strip()
+                    title_lower = title.lower()
+                    
+                    if any(keyword in title_lower for keyword in keywords) and len(title) > 20:
+                        href = article.get('href', '')
+                        full_url = href if href.startswith('http') else f'https://www.ft.com{href}'
+                        if not any(n['title'] == title for n in news):
+                            news.append({
+                                'title': title,
+                                'source': 'Financial Times',
+                                'url': full_url,
+                                'category': category.capitalize(),
+                                'timestamp': datetime.now().isoformat()
+                            })
+        except Exception as e:
+            print(f"FT scraping error for {category}: {e}")
+        
+        # Wall Street Journal
+        try:
+            response = requests.get('https://www.wsj.com/news/markets', headers=headers, timeout=8)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                articles = soup.find_all('h3', class_='WSJTheme--headline--7VCzo7Ay', limit=20)
+                
+                for article in articles:
+                    title_elem = article.find('a')
+                    if title_elem:
+                        title = title_elem.get_text().strip()
+                        title_lower = title.lower()
+                        
+                        if any(keyword in title_lower for keyword in keywords) and len(title) > 20:
+                            href = title_elem.get('href', '')
+                            full_url = href if href.startswith('http') else f'https://www.wsj.com{href}'
+                            if not any(n['title'] == title for n in news):
+                                news.append({
+                                    'title': title,
+                                    'source': 'Wall Street Journal',
+                                    'url': full_url,
+                                    'category': category.capitalize(),
+                                    'timestamp': datetime.now().isoformat()
+                                })
+        except Exception as e:
+            print(f"WSJ scraping error for {category}: {e}")
+        
+        print(f"Scraped {len(news)} articles for {category}")
+        
+        # Limit to 10 most recent
+        news = news[:10]
+        
+        return jsonify({'success': True, 'data': news})
+    except Exception as e:
+        print(f"Category news error for {category}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== DASHBOARD SUMMARY ====================
 @app.route('/api/dashboard', methods=['GET'])
 def get_dashboard_summary():
@@ -930,56 +1093,62 @@ def get_macro_data():
 def get_yield_curves():
     """Get historical yield curve data for comparison"""
     try:
-        maturities = ['3M', '6M', '2Y', '5Y', '10Y', '30Y']
         tickers = ['^IRX', '^FVX', '^TNX', '^TYX']  # Available treasury tickers
         
-        # Simplified yield curve data showing progression
-        # In production, this would fetch actual historical data
         today_data = []
-        one_month_data = []
         three_months_data = []
+        one_year_data = []
+        three_years_data = []
         
-        # Get current yields
+        # Get current and historical yields (need 3+ years of data)
         for ticker in tickers:
             try:
                 treasury = yf.Ticker(ticker)
-                hist = treasury.history(period='3mo')
+                # Fetch maximum available history
+                hist = treasury.history(period='max')
                 
-                if not hist.empty:
+                if not hist.empty and len(hist) > 0:
                     current = float(hist['Close'].iloc[-1])
-                    one_month = float(hist['Close'].iloc[-22] if len(hist) > 22 else current - 0.15)
-                    three_months = float(hist['Close'].iloc[0] if len(hist) > 60 else current - 0.30)
+                    three_months = float(hist['Close'].iloc[-65] if len(hist) > 65 else current)
+                    one_year = float(hist['Close'].iloc[-252] if len(hist) > 252 else current)
+                    three_years = float(hist['Close'].iloc[-756] if len(hist) > 756 else current)
                     
                     if ticker == '^IRX':
-                        today_data.append(('3M', current))
-                        one_month_data.append(one_month)
-                        three_months_data.append(three_months)
+                        maturity = '3M'
                     elif ticker == '^FVX':
-                        today_data.append(('5Y', current))
-                        one_month_data.append(one_month)
-                        three_months_data.append(three_months)
+                        maturity = '5Y'
                     elif ticker == '^TNX':
-                        today_data.append(('10Y', current))
-                        one_month_data.append(one_month)
-                        three_months_data.append(three_months)
+                        maturity = '10Y'
                     elif ticker == '^TYX':
-                        today_data.append(('30Y', current))
-                        one_month_data.append(one_month)
-                        three_months_data.append(three_months)
-            except:
+                        maturity = '30Y'
+                    else:
+                        continue
+                    
+                    today_data.append((maturity, current))
+                    three_months_data.append(three_months)
+                    one_year_data.append(one_year)
+                    three_years_data.append(three_years)
+            except Exception as e:
+                print(f"Error fetching {ticker}: {e}")
                 continue
         
         # Format for chart
-        curve_data = []
+        comparison_data = []
         for i, (maturity, today) in enumerate(today_data):
-            curve_data.append({
+            comparison_data.append({
                 'maturity': maturity,
                 'today': round(today, 2),
-                'oneMonthAgo': round(one_month_data[i], 2),
-                'threeMonthsAgo': round(three_months_data[i], 2)
+                'threeMonthsAgo': round(three_months_data[i], 2),
+                'oneYearAgo': round(one_year_data[i], 2),
+                'threeYearsAgo': round(three_years_data[i], 2)
             })
         
-        return jsonify({'success': True, 'data': curve_data})
+        return jsonify({
+            'success': True, 
+            'data': {
+                'comparison': comparison_data
+            }
+        })
     except Exception as e:
         print(f"Yield curve error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1021,9 +1190,7 @@ def handle_disconnect():
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
-    import os
     # Start background task for live updates
     # threading.Thread(target=emit_live_data, daemon=True).start()
-    port = int(os.environ.get('PORT', 5001))
-    socketio.run(app, debug=True, host='0.0.0.0', port=port)
+    socketio.run(app, debug=True, host='127.0.0.1', port=5001, allow_unsafe_werkzeug=True)
 

@@ -1,28 +1,34 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { FiRefreshCw } from 'react-icons/fi'
+import { FiRefreshCw, FiBookOpen, FiEye, FiMessageCircle, FiExternalLink } from 'react-icons/fi'
+import { cachedFetch } from '../utils/cache'
 import './AssetClass.css'
 
 const Rates = () => {
   const [data, setData] = useState([])
   const [yieldCurves, setYieldCurves] = useState(null)
+  const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingNews, setLoadingNews] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     fetchData()
     fetchYieldCurves()
+    fetchNews()
     const interval = setInterval(() => {
       fetchData()
       fetchYieldCurves()
+      fetchNews()
     }, 60000)
     return () => clearInterval(interval)
   }, [])
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('/api/rates')
-      setData(response.data.data || [])
+      const response = await cachedFetch('/api/rates', { durationType: 'rates' })
+      setData(response.data || [])
       setLoading(false)
     } catch (error) {
       console.error('Error fetching rates:', error)
@@ -32,15 +38,30 @@ const Rates = () => {
 
   const fetchYieldCurves = async () => {
     try {
-      const response = await axios.get('/api/rates/yield-curves')
-      setYieldCurves(response.data.data || null)
+      const response = await cachedFetch('/api/rates/yield-curves', { durationType: 'rates' })
+      setYieldCurves(response.data || null)
     } catch (error) {
       console.error('Error fetching yield curves:', error)
     }
   }
 
+  const fetchNews = async () => {
+    try {
+      const response = await cachedFetch('/api/news/rates', { durationType: 'news' })
+      setNews(response.data || [])
+      setLoadingNews(false)
+    } catch (error) {
+      console.error('Error fetching news:', error)
+      setLoadingNews(false)
+    }
+  }
+
   if (loading) {
-    return <div className="loading"><div className="spinner"></div></div>
+    return (
+      <div className="asset-class">
+        <div className="loading">Loading rates data...</div>
+      </div>
+    )
   }
 
   const yieldCurveData = data.map(rate => ({
@@ -49,191 +70,242 @@ const Rates = () => {
   }))
 
   return (
-    <div className="asset-class-page">
-      <div className="page-header">
-        <div>
-          <h1>Interest Rates</h1>
-          <p>Treasury yields and government bond rates</p>
-        </div>
-        <button className="refresh-btn" onClick={fetchData}>
+    <div className="asset-class">
+      {/* Header */}
+      <div className="asset-header">
+        <h1>Rates</h1>
+        <button className="refresh-btn" onClick={() => { fetchData(); fetchYieldCurves(); fetchNews(); }}>
           <FiRefreshCw /> Refresh
         </button>
       </div>
 
-      {/* Yield Curve Comparison Chart */}
-      {yieldCurves && (
-        <div className="chart-container">
-          <div className="chart-header">
-            <h3 className="chart-title">US Treasury Yield Curve Comparison</h3>
-            <p style={{ color: '#8b92b0', fontSize: '0.875rem' }}>Today vs 1 Month vs 3 Months Ago</p>
+      {/* Tab Navigation */}
+      <div className="tab-nav">
+        <button 
+          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'desk' ? 'active' : ''}`}
+          onClick={() => setActiveTab('desk')}
+        >
+          <FiBookOpen /> What the Desk Does
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'indicators' ? 'active' : ''}`}
+          onClick={() => setActiveTab('indicators')}
+        >
+          <FiEye /> How to View Indicators
+        </button>
+        {/* <button 
+          className={`tab-btn ${activeTab === 'questions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('questions')}
+        >
+          <FiMessageCircle /> Questions to Ask
+        </button> */}
+        <button 
+          className={`tab-btn ${activeTab === 'news' ? 'active' : ''}`}
+          onClick={() => setActiveTab('news')}
+        >
+          📰 News
+        </button>
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <>
+          {/* Yield Curve Comparison Chart */}
+          {yieldCurves && (
+            <div className="chart-section">
+              <h2>US Treasury Yield Curve Comparison</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={yieldCurves.comparison}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                  <XAxis 
+                    dataKey="maturity" 
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8' }}
+                  />
+                  <YAxis 
+                    stroke="#94a3b8"
+                    tick={{ fill: '#94a3b8' }}
+                    label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
+                    labelStyle={{ color: '#e2e8f0' }}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="today" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    name="Today"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="threeMonthsAgo" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    name="3 Months Ago"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="oneYearAgo" 
+                    stroke="#f59e0b" 
+                    strokeWidth={2}
+                    name="1 Year Ago"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="threeYearsAgo" 
+                    stroke="#ef4444" 
+                    strokeWidth={2}
+                    name="3 Years Ago"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Current Yield Curve */}
+          <div className="chart-section">
+            <h2>Current Yield Curve</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={yieldCurveData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8' }}
+                />
+                <YAxis 
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8' }}
+                  label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
+                  labelStyle={{ color: '#e2e8f0' }}
+                />
+                <Bar dataKey="yield" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={yieldCurves}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 146, 176, 0.1)" />
-              <XAxis 
-                dataKey="maturity" 
-                stroke="#8b92b0"
-                tick={{ fill: '#8b92b0' }}
-              />
-              <YAxis 
-                stroke="#8b92b0"
-                tick={{ fill: '#8b92b0' }}
-                label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#8b92b0' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  background: '#1e2447', 
-                  border: '1px solid rgba(102, 126, 234, 0.3)',
-                  borderRadius: '8px',
-                  color: '#ffffff'
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ color: '#8b92b0' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="today" 
-                stroke="#667eea" 
-                strokeWidth={3}
-                name="Today"
-                dot={{ r: 5 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="oneMonthAgo" 
-                stroke="#f59e0b" 
-                strokeWidth={2}
-                name="1 Month Ago"
-                dot={{ r: 4 }}
-                strokeDasharray="5 5"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="threeMonthsAgo" 
-                stroke="#10b981" 
-                strokeWidth={2}
-                name="3 Months Ago"
-                dot={{ r: 4 }}
-                strokeDasharray="3 3"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+
+          {/* Data Cards */}
+          <div className="data-grid">
+            {data.map((rate, index) => (
+              <div key={index} className="data-card">
+                <h3>{rate.name}</h3>
+                <div className="price">{rate.yield}%</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* What the Desk Does Tab */}
+      {activeTab === 'desk' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiBookOpen /> What the Rates Desk Does</h2>
+            <ul className="info-list">
+              <li>Trades government bonds, swaps, and rate derivatives.</li>
+              <li>Manages interest rate exposure, curve shape (2s10s, 5s30s), and policy expectations.</li>
+              <li>Provides hedging to corporates, sovereigns, and funds.</li>
+            </ul>
+          </div>
         </div>
       )}
 
-      {/* Current Yield Curve */}
-      <div className="chart-container">
-        <div className="chart-header">
-          <h3 className="chart-title">Current Yield Curve</h3>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={yieldCurveData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 146, 176, 0.1)" />
-            <XAxis 
-              dataKey="name" 
-              stroke="#8b92b0"
-              tick={{ fill: '#8b92b0' }}
-            />
-            <YAxis 
-              stroke="#8b92b0"
-              tick={{ fill: '#8b92b0' }}
-              label={{ value: 'Yield (%)', angle: -90, position: 'insideLeft', fill: '#8b92b0' }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                background: '#1e2447', 
-                border: '1px solid rgba(102, 126, 234, 0.3)',
-                borderRadius: '8px',
-                color: '#ffffff'
-              }}
-            />
-            <Bar 
-              dataKey="yield" 
-              fill="#667eea"
-              radius={[8, 8, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Rates Cards */}
-      <div className="cards-grid">
-        {data.map((rate) => (
-          <div key={rate.ticker} className="card">
-            <div className="card-header">
-              <span className="card-title">{rate.name}</span>
-              <span className={`card-badge ${rate.change >= 0 ? 'up' : 'down'}`}>
-                {rate.change >= 0 ? '↑' : '↓'}
-              </span>
-            </div>
-            <div className="card-value">{rate.yield.toFixed(3)}%</div>
-            <div className={`card-change ${rate.change >= 0 ? 'positive' : 'negative'}`}>
-              {rate.change > 0 ? '+' : ''}{rate.change.toFixed(3)} bps
+      {/* How to View Indicators Tab */}
+      {activeTab === 'indicators' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiEye /> How to View Indicators</h2>
+            <div className="indicator-list">
+              <div className="indicator-item">
+                <h3>📈 Rising yields</h3>
+                <p>Tightening policy or higher inflation expectations.</p>
+              </div>
+              <div className="indicator-item">
+                <h3>📉 Falling yields</h3>
+                <p>Risk-off or recession fears.</p>
+              </div>
+              <div className="indicator-item">
+                <h3>📊 Curve steepening</h3>
+                <p>Easing expectations or fiscal supply.</p>
+              </div>
+              <div className="indicator-item">
+                <h3>📉 Curve flattening</h3>
+                <p>Tighter policy, growth worries.</p>
+              </div>
+              <div className="indicator-item">
+                <h3>💹 Volatility index (MOVE)</h3>
+                <p>Measures rate uncertainty; high MOVE = more trading opportunity.</p>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Rates Table */}
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h2 className="section-title">Treasury Rates Details</h2>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Maturity</th>
-              <th>Current Yield</th>
-              <th>Change (bps)</th>
-              <th>Previous Close</th>
-              <th>52W High</th>
-              <th>52W Low</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((rate) => (
-              <tr key={rate.ticker}>
-                <td style={{ fontWeight: 600 }}>{rate.name}</td>
-                <td style={{ fontWeight: 600 }}>{rate.yield.toFixed(3)}%</td>
-                <td className={rate.change >= 0 ? 'positive' : 'negative'}>
-                  {rate.change > 0 ? '+' : ''}{rate.change.toFixed(3)}
-                </td>
-                <td>{(rate.yield - rate.change).toFixed(3)}%</td>
-                <td style={{ color: '#8b92b0' }}>--</td>
-                <td style={{ color: '#8b92b0' }}>--</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Market Commentary */}
-      <div className="cards-grid" style={{ marginTop: '2rem' }}>
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem' }}>Yield Curve Analysis</h3>
-          <p style={{ color: '#8b92b0', fontSize: '0.875rem', lineHeight: '1.6' }}>
-            The yield curve shows the relationship between Treasury yields and maturities. 
-            A normal curve slopes upward, indicating higher yields for longer maturities.
-          </p>
         </div>
+      )}
 
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem' }}>Key Factors</h3>
-          <div style={{ color: '#8b92b0', fontSize: '0.875rem' }}>
-            <div style={{ marginBottom: '0.5rem' }}>• Federal Reserve Policy</div>
-            <div style={{ marginBottom: '0.5rem' }}>• Inflation Expectations</div>
-            <div style={{ marginBottom: '0.5rem' }}>• Economic Growth</div>
-            <div>• Global Demand</div>
+      {/* Questions to Ask Tab */}
+      {/* {activeTab === 'questions' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2><FiMessageCircle /> Questions to Ask the Desk</h2>
+            <div className="questions-list">
+              <div className="question-item">
+                <span className="q-mark">Q:</span>
+                <p>"How are you positioned on the curve—expecting more steepening or flattening?"</p>
+              </div>
+              <div className="question-item">
+                <span className="q-mark">Q:</span>
+                <p>"What's driving the long end: fiscal issuance or term premium?"</p>
+              </div>
+              <div className="question-item">
+                <span className="q-mark">Q:</span>
+                <p>"How sensitive is your book to ECB/BOE policy expectations?"</p>
+              </div>
+            </div>
           </div>
         </div>
+      )} */}
 
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem' }}>Trading Implications</h3>
-          <p style={{ color: '#8b92b0', fontSize: '0.875rem', lineHeight: '1.6' }}>
-            Rising rates typically strengthen USD, impact equity valuations, and affect 
-            corporate borrowing costs across all markets.
-          </p>
+      {/* News Tab */}
+      {activeTab === 'news' && (
+        <div className="info-section">
+          <div className="info-card">
+            <h2>📰 Rates News</h2>
+            {loadingNews ? (
+              <p className="loading-text">Loading news...</p>
+            ) : news.length > 0 ? (
+              <div className="news-list">
+                {news.map((article, index) => (
+                  <div key={index} className="news-item">
+                    <a href={article.url} target="_blank" rel="noopener noreferrer" className="news-link">
+                      <h3>
+                        {article.title}
+                        <FiExternalLink className="external-icon" />
+                      </h3>
+                      <div className="news-meta">
+                        <span className="news-source">{article.source}</span>
+                        <span className="news-time">{new Date(article.timestamp).toLocaleString()}</span>
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="no-data">No news articles found for this category.</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

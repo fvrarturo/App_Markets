@@ -1,0 +1,168 @@
+===============================
+EQUITIES
+===============================
+
+What the desk does:
+- Trades stocks, ETFs, and equity derivatives to provide liquidity and market access.
+- Focuses on client execution, risk management, and pricing volatility (options).
+- In London: heavy focus on European equities, structured equity, and financing (prime brokerage).
+
+How to view indicators:
+- Rising indices (EuroStoxx, FTSE, DAX) → risk-on tone, equity traders long-biased.
+- Falling implied vol (VIX/VStoxx) → quieter markets, more structured-yield issuance.
+- Widening vol → hedging demand, index options pricing more expensive.
+- Sector performance shifts (banks vs tech) → rotation themes, affect flow and hedging.
+
+Questions to ask:
+- "Which sectors are driving most of your flow recently?"
+- "How does lower volatility affect your book or client activity?"
+- "Do you see more demand for yield structures or protection lately?"
+- "How do you hedge large client orders when liquidity dries up?"
+
+News keywords:
+equities, EuroStoxx, FTSE 100, VIX, VStoxx, earnings, buybacks, volatility, sector rotation, valuation, structured notes, autocallables, hedge funds.
+
+
+===============================
+RATES
+===============================
+
+What the desk does:
+- Trades government bonds, swaps, and rate derivatives.
+- Manages interest rate exposure, curve shape (2s10s, 5s30s), and policy expectations.
+- Provides hedging to corporates, sovereigns, and funds.
+
+How to view indicators:
+- Rising yields → tightening policy or higher inflation expectations.
+- Falling yields → risk-off or recession fears.
+- Curve steepening → easing expectations or fiscal supply.
+- Curve flattening → tighter policy, growth worries.
+- Volatility index (MOVE) → measures rate uncertainty; high MOVE = more trading opportunity.
+
+Questions to ask:
+- "How are you positioned on the curve—expecting more steepening or flattening?"
+- "What’s driving the long end: fiscal issuance or term premium?"
+- "How sensitive is your book to ECB/BOE policy expectations?"
+
+News keywords:
+yield curve, ECB, BOE, Fed, Bund, Gilt, Treasury, inflation swaps, 2s10s, 5s30s, MOVE index, QT, fiscal deficit, sovereign issuance.
+
+
+===============================
+FX
+===============================
+
+What the desk does:
+- Trades currency pairs (spot, forwards, swaps, options).
+- Provides liquidity, hedging, and speculative access to FX markets.
+- London is the global hub for G10 and EMEA currencies.
+
+How to view indicators:
+- DXY up → USD strength; often risk-off.
+- Carry differentials → drive EM and high-yield currency flows.
+- FX vol rising → option traders busy, more hedging flows.
+- Basis swaps widening → USD funding tightness.
+
+Questions to ask:
+- "Where do you see most client flow—hedging or speculation?"
+- "How have carry trades behaved with recent rate differentials?"
+- "What’s been driving EUR/USD skew—more demand for calls or puts?"
+
+News keywords:
+forex, FX, EUR/USD, GBP/USD, DXY, carry trade, vol surface, risk reversal, EM FX, cross-currency basis, BOE, ECB, Fed, intervention.
+
+
+===============================
+COMMODITIES
+===============================
+
+What the desk does:
+- Trades energy (oil, gas, power), metals, and soft commodities.
+- Provides hedging and structured solutions to corporates and investors.
+- London desks often focus on energy, emissions, and metals markets.
+
+How to view indicators:
+- Rising crude prices → energy traders active; inflation pressure → affects rates & equities.
+- Backwardation vs contango → reveals physical tightness or surplus.
+- Volatility spikes in oil/nat gas → more client hedging, bigger P&L swings.
+- Metals prices (copper, gold) → global demand proxies and risk sentiment.
+
+Questions to ask:
+- "What drives most of your client flow—hedging or directional views?"
+- "How are you managing volatility in energy markets lately?"
+- "Are clients still using structured products around oil prices?"
+
+News keywords:
+oil, Brent, WTI, natural gas, OPEC, metals, copper, gold, LNG, energy volatility, emissions, carbon trading.
+
+
+===============================
+CREDIT
+===============================
+
+What the desk does:
+- Trades corporate bonds, credit default swaps (CDS), and loan products.
+- Provides liquidity and hedging for investors exposed to credit risk.
+- London desks: focus on European investment-grade (IG) and high-yield (HY) credit.
+
+How to view indicators:
+- Tightening spreads → improving sentiment, risk-on.
+- Widening spreads → risk aversion, rising default risk.
+- iTraxx Main and Xover → benchmark indices for IG and HY credit spreads.
+- New issuance spikes → positive sign for market confidence.
+
+Questions to ask:
+- "Are you seeing more flow in IG or HY lately?"
+- "How are clients positioned—buying protection or selling?"
+- "Do you think spreads reflect fundamentals or just liquidity flows?"
+
+News keywords:
+credit spreads, CDS, iTraxx, default rates, HY, IG, issuance, leverage loans, rating downgrade, refinancing.
+
+
+===============================
+SPG (Securitized Products Group)
+===============================
+
+What the desk does:
+- Trades and structures securities backed by loans (RMBS, CMBS, ABS, CLOs).
+- Connects lenders/investors via securitization, managing yield and risk tranching.
+- London focus: European RMBS, ABS, and CLOs.
+
+How to view indicators:
+- Widening RMBS/ABS spreads → stress in housing or consumer credit.
+- New issuance levels → gauge investor appetite and funding conditions.
+- Default and prepayment data → key to valuation and performance.
+- CLO tranche spreads → signal credit-cycle sentiment.
+
+Questions to ask:
+- "How has issuance evolved given higher rates?"
+- "Are investors demanding more protection in mezz tranches?"
+- "Which asset classes (RMBS, autos, CLOs) are most active right now?"
+
+News keywords:
+RMBS, CMBS, ABS, CLO, securitization, prepayment, default, consumer credit, housing market, structured credit, tranche spreads.
+
+
+===============================
+STRUCTURED PRODUCTS
+===============================
+
+What the desk does:
+- Designs and prices customized derivatives/notes combining asset classes.
+- Balances client objectives (yield, protection, leverage) with hedge feasibility.
+- London focus: equity-linked, credit-linked, and cross-asset payoffs.
+
+How to view indicators:
+- Low volatility → cheaper options → more yield-enhancement demand.
+- High volatility → more hedging/protection products.
+- Rate levels → affect coupon potential and product attractiveness.
+- Correlation shifts → impact multi-asset payoff structures.
+
+Questions to ask:
+- "What kinds of payoffs are clients demanding right now—yield or protection?"
+- "How do you hedge correlation risk across multi-asset structures?"
+- "Have you seen more cross-asset or ESG-linked demand recently?"
+
+News keywords:
+structured notes, autocallables, reverse convertibles, hybrid structures, volatility, correlation, client demand, product issuance, ESG, retail structured products.

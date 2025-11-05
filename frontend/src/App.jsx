@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
+import CacheIndicator from './components/CacheIndicator'
 import Dashboard from './pages/Dashboard'
 import Equities from './pages/Equities'
 import FX from './pages/FX'
@@ -10,7 +11,6 @@ import Commodities from './pages/Commodities'
 import Securitized from './pages/Securitized'
 import Structured from './pages/Structured'
 import Macro from './pages/Macro'
-import News from './pages/News'
 import './App.css'
 
 function App() {
@@ -20,6 +20,7 @@ function App() {
     <Router>
       <div className="app">
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+        <CacheIndicator />
         <main className={`main-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -31,7 +32,6 @@ function App() {
             <Route path="/securitized" element={<Securitized />} />
             <Route path="/structured" element={<Structured />} />
             <Route path="/macro" element={<Macro />} />
-            <Route path="/news" element={<News />} />
           </Routes>
         </main>
       </div>
